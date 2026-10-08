@@ -1,75 +1,37 @@
-# Nuxt Minimal Starter
+# SparkleClean Ireland
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+Nuxt booking site for home cleaning. Submissions are stored in SQLite and emailed to the team.
 
 ## Setup
 
-Make sure to install dependencies:
-
 ```bash
-# npm
 npm install
-
-# pnpm
-pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
+cp .env.example .env
 ```
 
-## Development Server
+Fill in Gmail SMTP settings in `.env` (use a [Google App Password](https://support.google.com/accounts/answer/185833)):
 
-Start the development server on `http://localhost:3000`:
+```env
+NUXT_NOTIFY_EMAIL=mayanping1030@gmail.com
+NUXT_SMTP_HOST=smtp.gmail.com
+NUXT_SMTP_PORT=587
+NUXT_SMTP_USER=mayanping1030@gmail.com
+NUXT_SMTP_PASS=your-gmail-app-password
+```
+
+Without SMTP credentials, bookings still save to the database; email is skipped with a server warning.
+
+## Development
 
 ```bash
-# npm
 npm run dev
-
-# pnpm
-pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
 ```
 
 ## Production
 
-Build the application for production:
-
 ```bash
-# npm
 npm run build
-
-# pnpm
-pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
-```
-
-Locally preview production build:
-
-```bash
-# npm
 npm run preview
-
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
 ```
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+SQLite data lives under `.data/` (gitignored).

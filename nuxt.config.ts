@@ -31,9 +31,29 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
+    // Private — override via NUXT_* env vars
+    notifyEmail: 'mayanping1030@gmail.com',
+    smtpHost: '',
+    smtpPort: '587',
+    smtpUser: '',
+    smtpPass: '',
+    smtpFrom: '',
     public: {
       whatsappNumber: '353870042185',
       businessName: 'SparkleClean Ireland',
+      contactEmail: 'mayanping1030@gmail.com',
+    },
+  },
+
+  nitro: {
+    experimental: {
+      database: true,
+    },
+    database: {
+      default: {
+        connector: 'sqlite',
+        options: { name: 'bookings' },
+      },
     },
   },
 })

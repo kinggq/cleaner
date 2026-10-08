@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Menu, Phone, Sparkles, X } from '@lucide/vue'
+import { Mail, Menu, Phone, Sparkles, X } from '@lucide/vue'
 
 const config = useRuntimeConfig()
 const route = useRoute()
@@ -119,10 +119,17 @@ watch(
               Contact
             </h3>
             <a
+              :href="`mailto:${config.public.contactEmail}`"
+              class="inline-flex items-center gap-2 text-sm hover:text-emerald-400"
+            >
+              <Mail class="h-4 w-4" />
+              {{ config.public.contactEmail }}
+            </a>
+            <a
               :href="`https://wa.me/${config.public.whatsappNumber}`"
               target="_blank"
               rel="noopener noreferrer"
-              class="inline-flex items-center gap-2 text-sm hover:text-emerald-400"
+              class="mt-2 inline-flex items-center gap-2 text-sm hover:text-emerald-400"
             >
               <Phone class="h-4 w-4" />
               WhatsApp Us

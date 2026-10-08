@@ -1,70 +1,53 @@
 import type { BookingForm, PriceBreakdown } from '~/types/booking'
 
+export interface BookingSubmitResult {
+  id: string
+  pricing: PriceBreakdown
+  emailSent: boolean
+  createdAt: string
+}
+
 export function useBookingSubmit() {
-  const config = useRuntimeConfig()
   const router = useRouter()
+  const submitting = ref(false)
+  const submitError = ref<string | null>(null)
 
-  const buildWhatsAppMessage = (
-    form: BookingForm,
-    pricing: PriceBreakdown,
-    formatEUR: (n: number) => string,
-  ) => {
-    const serviceLabel =
-      form.serviceType === 'standard'
-        ? 'Standard Cleaning'
-        : 'Deep / End of Tenancy Cleaning'
+  const submitBooking = async (form: BookingForm) => {
+    submitting.value = true
+    submitError.value = null
 
-    const addonLines =
-      pricing.addonItems.length > 0
-        ? pricing.addonItems.map((a) => `• ${a.label}: ${formatEUR(a.price)}`).join('\n')
-        : '• None'
+    try {
+      const result = await $fetch<BookingSubmitResult>('/api/bookings', {
+        method: 'POST',
+        body: form,
+      })
 
-    return [
-      `🧹 *New Booking Request – ${config.public.businessName}*`,
-      '',
-      `*Service:* ${serviceLabel}`,
-      `*Duration:* ${pricing.hours} hours @ ${formatEUR(pricing.hourlyRate)}/hr`,
-      `*Add-ons:*`,
-      addonLines,
-      `*Estimated Total:* ${formatEUR(pricing.total)}`,
-      '',
-      `*Date:* ${form.date}`,
-      `*Time:* ${form.timeSlot}`,
-      '',
-      `*Name:* ${form.name}`,
-      `*Phone:* ${form.phone}`,
-      `*Email:* ${form.email}`,
-      `*Eircode:* ${form.eircode.toUpperCase()}`,
-      form.address ? `*Address:* ${form.address}` : '',
-      form.notes ? `*Notes:* ${form.notes}` : '',
-    ]
-      .filter(Boolean)
-      .join('\n')
+      if (import.meta.client) {
+        sessionStorage.setItem(
+          'lastBooking',
+          JSON.stringify({
+            id: result.id,
+            pricing: result.pricing,
+            emailSent: result.emailSent,
+            submittedAt: result.createdAt,
+          }),
+        )
+      }
+
+      await router.push('/success')
+      return result
+    } catch (err: unknown) {
+      const e = err as { data?: { statusMessage?: string }; statusMessage?: string; message?: string }
+      submitError.value =
+        e?.data?.statusMessage ||
+        e?.statusMessage ||
+        e?.message ||
+        'Failed to submit booking. Please try again.'
+      return null
+    } finally {
+      submitting.value = false
+    }
   }
 
-  const submitBooking = (
-    form: BookingForm,
-    pricing: PriceBreakdown,
-    formatEUR: (n: number) => string,
-  ) => {
-    const payload = {
-      ...form,
-      pricing,
-      submittedAt: new Date().toISOString(),
-    }
-
-    console.log('[Booking Submission]', payload)
-
-    const message = buildWhatsAppMessage(form, pricing, formatEUR)
-    const whatsappUrl = `https://wa.me/${config.public.whatsappNumber}?text=${encodeURIComponent(message)}`
-
-    if (import.meta.client) {
-      sessionStorage.setItem('lastBooking', JSON.stringify(payload))
-      window.open(whatsappUrl, '_blank')
-    }
-
-    router.push('/success')
-  }
-
-  return { submitBooking, buildWhatsAppMessage }
+  return { submitBooking, submitting, submitError }
 }

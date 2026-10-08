@@ -5,14 +5,14 @@ import {
   Calendar,
   Check,
   Home,
-  MessageCircle,
+  Loader2,
   Sparkles,
 } from '@lucide/vue'
 import type { AddonId, BookingForm, HouseSize, ServiceType } from '~/types/booking'
 
 useSeoMeta({
   title: 'Book a Clean | SparkleClean Ireland',
-  description: 'Book standard or deep cleaning online. Real-time pricing, Eircode booking, WhatsApp confirmation.',
+  description: 'Book standard or deep cleaning online. Real-time pricing, Eircode booking, instant confirmation.',
 })
 
 const {
@@ -27,7 +27,7 @@ const {
   PRICING,
 } = usePricing()
 
-const { submitBooking } = useBookingSubmit()
+const { submitBooking, submitting, submitError } = useBookingSubmit()
 
 const currentStep = ref(1)
 const totalSteps = 4
@@ -126,9 +126,10 @@ function prevStep() {
   if (currentStep.value > 1) currentStep.value--
 }
 
-function handleSubmit() {
+async function handleSubmit() {
+  if (submitting.value) return
   if (!validateStep(4)) return
-  submitBooking(form.value, pricing.value, formatEUR)
+  await submitBooking(form.value)
 }
 
 watch(
@@ -153,7 +154,7 @@ watch(
         </NuxtLink>
         <h1 class="text-3xl font-bold text-slate-900 sm:text-4xl">Book your clean</h1>
         <p class="mt-2 text-slate-600">
-          Transparent pricing · Confirm via WhatsApp · Fully insured
+          Transparent pricing · Instant booking · Fully insured
         </p>
       </div>
 
@@ -204,8 +205,8 @@ watch(
               >
                 <div class="flex items-start justify-between">
                   <div>
-                    <p class="font-semibold text-slate-900">Standard Cleaning</p>
-                    <p class="mt-1 text-sm text-slate-500">Regular home & apartment clean</p>
+                    <p class="font-semibold text-slate-900">{{ PRICING?.standard.label }}</p>
+                    <p class="mt-1 text-sm text-slate-500">{{ PRICING?.standard.description }}</p>
                   </div>
                   <Check
                     v-if="form.serviceType === 'standard'"
@@ -213,9 +214,9 @@ watch(
                   />
                 </div>
                 <p class="mt-3 text-lg font-bold text-emerald-700">
-                  {{ formatEUR(PRICING.standard.hourlyRate) }}/hr
+                  {{ formatEUR(PRICING?.standard.hourlyRate ?? 0) }}/hr
                 </p>
-                <p class="text-xs text-slate-500">Min. {{ PRICING.standard.minHours }} hours</p>
+                <p class="text-xs text-slate-500">Min. {{ PRICING?.standard.minHours }} hours</p>
               </button>
 
               <button
@@ -230,8 +231,8 @@ watch(
               >
                 <div class="flex items-start justify-between">
                   <div>
-                    <p class="font-semibold text-slate-900">Deep / End of Tenancy</p>
-                    <p class="mt-1 text-sm text-slate-500">Move-in, move-out & spring clean</p>
+                    <p class="font-semibold text-slate-900">{{ PRICING?.deep.label }}</p>
+                    <p class="mt-1 text-sm text-slate-500">{{ PRICING?.deep.description }}</p>
                   </div>
                   <Check
                     v-if="form.serviceType === 'deep'"
@@ -239,9 +240,9 @@ watch(
                   />
                 </div>
                 <p class="mt-3 text-lg font-bold text-emerald-700">
-                  {{ formatEUR(PRICING.deep.hourlyRate) }}/hr
+                  {{ formatEUR(PRICING?.deep.hourlyRate ?? 0) }}/hr
                 </p>
-                <p class="text-xs text-slate-500">Min. {{ PRICING.deep.minHours }} hours</p>
+                <p class="text-xs text-slate-500">Min. {{ PRICING?.deep.minHours }} hours</p>
               </button>
             </div>
 
@@ -341,7 +342,7 @@ watch(
               </span>
               <div>
                 <h2 class="text-xl font-bold text-slate-900">Pick date & time</h2>
-                <p class="text-sm text-slate-500">We'll confirm availability via WhatsApp</p>
+                <p class="text-sm text-slate-500">We'll confirm availability by email shortly</p>
               </div>
             </div>
 
@@ -465,12 +466,16 @@ watch(
               v-else
               type="button"
               class="btn-primary sm:ml-auto"
+              :disabled="submitting"
               @click="handleSubmit"
             >
-              <MessageCircle class="h-4 w-4" />
-              Confirm & Send via WhatsApp
+              <Loader2 v-if="submitting" class="h-4 w-4 animate-spin" />
+              <Check v-else class="h-4 w-4" />
+              {{ submitting ? 'Submitting…' : 'Confirm booking' }}
             </button>
           </div>
+
+          <p v-if="submitError" class="mt-4 text-sm text-red-600">{{ submitError }}</p>
         </div>
 
         <!-- Sidebar summary (desktop) -->
@@ -506,9 +511,10 @@ watch(
             v-else
             type="button"
             class="btn-primary !py-2.5"
+            :disabled="submitting"
             @click="handleSubmit"
           >
-            Confirm
+            {{ submitting ? 'Submitting…' : 'Confirm' }}
           </button>
         </div>
       </div>

@@ -10,16 +10,14 @@ const props = defineProps<{
   compact?: boolean
 }>()
 
-const { calculatePrice, formatEUR, ADDONS } = usePricing()
+const { calculatePrice, formatEUR, PRICING, getMinHours } = usePricing()
 
 const pricing = computed(() =>
   calculatePrice(props.serviceType, props.hours, props.addons),
 )
 
-const serviceLabel = computed(() =>
-  props.serviceType === 'standard'
-    ? 'Standard Cleaning'
-    : 'Deep / End of Tenancy',
+const serviceLabel = computed(
+  () => PRICING.value?.[props.serviceType].label ?? props.serviceType,
 )
 </script>
 
@@ -84,8 +82,8 @@ const serviceLabel = computed(() =>
     </div>
 
     <p v-if="!compact" class="mt-3 text-xs leading-relaxed text-slate-500">
-      Final price may vary slightly based on property condition. Minimum 3 hours applies
-      to all standard bookings.
+      Final price may vary slightly based on property condition. Minimum
+      {{ getMinHours('standard') }} hours applies to all standard bookings.
     </p>
 
     <slot />

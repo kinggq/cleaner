@@ -17,6 +17,21 @@ export interface HouseSizeOption {
   hours: number
 }
 
+export interface ServicePricing {
+  hourlyRate: number
+  minHours: number
+  label: string
+  description: string
+  teaser: string
+}
+
+export interface PricingCatalog {
+  pricing: Record<ServiceType, ServicePricing>
+  addons: AddonOption[]
+  houseSizes: HouseSizeOption[]
+  timeSlots: string[]
+}
+
 export interface BookingForm {
   serviceType: ServiceType
   hours: number
